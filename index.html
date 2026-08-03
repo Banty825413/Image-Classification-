@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title >Image Classifier</title>
+
+    <!-- Style  -->
+
+    <style>
+    *{ box-sizing: border-box; margin: 0; padding: 0;}
+    body{
+        background: linear-gradient(to right, #7d2fe2, #fcb69f);
+        display: flex;
+        align-items: center;
+        justify-content:center;
+        min-height: 100vh;
+        
+    }
+   
+    
+    .container{
+        /* background-color: #fff; */
+        /* border-radius: 10px; */
+        padding: 20px;
+        /* box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1); */
+        text-align : center;
+    }
+    #dropzone{
+        border: 2px dashed #ccc;
+        border-radius:10px;
+        padding: 20px;
+        cursor: pointer;
+        margin-bottom: 20px;
+        transition: background-color 0.2s, border-color 0.2s;
+        color: #fff;
+    }
+    #dropzone.hover{
+        background-color:#8261e6;
+        border-color:#6f25cf;
+    }
+    #dropzone.dragover{
+        background-color:#ddd5e7;
+        border-color:#6f25cf;
+    }
+    #fileinput{
+        display: none;
+    }
+    #previewwrapper{
+        margin-bottom: 20px;
+        display: none;
+    }
+    #classifybutton{
+        display : none;
+    }
+    #classifybutton{
+        margin-top: 10px;
+        background-color: #a67de0;
+        color: #131212;
+        border: dashed black;
+        border-radius:5px;
+        font-size:40px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        block-size: auto;
+        margin-bottom: 3cm;
+        border-width: 1px;
+        
+    }
+    #classifybutton:hover{
+        background-color: #d6bff5;
+    }
+    #classifybutton:disabled{
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
+
+    #result{
+        margin-top: 20px;
+        padding: 10px;
+        border: 1px solid #28e5f3;
+        text-align: left;
+    }
+    #result h3 { color : #fdfbff; font-size: 30px; margin-bottom:10px;}
+    .pred-row{
+        display:flex;
+        justify-content: space-between;
+        padding: 5px 0;
+        font-size:16px;
+        color: #fff;
+        border-bottom: 1px solid #ccc;
+    }
+    .pred-row:last-child{
+        border-bottom:none;
+
+    }
+
+    .confidence-fill{
+        height: 100%;
+        background-color: #7d2fe2;}
+    #loader{
+        display:none;
+        margin-top:20px;
+        font-size:15px;
+        color: #fff;
+
+    }
+    #errormsg{
+        display:none;
+        margin-top:20px;
+        font-size:15px;
+        color: #e20303;
+    }
+    </style>
+
+</head>
+
+<body>
+    <div class ="container"> 
+        <h1 style=" font-size:100px;">Image Classifier</h1>
+        <p class ="Subtitle" style ="font-size:20px;">Upload an image to classify</p>
+
+        <div id = "dropzone"> 
+            <p>Click to upload or drag image here</p>
+
+        </div>
+        <input type = "file" id = "fileinput" accept="image/*">
+
+        <div id="previewwrapper">
+            <img id="previewimage" src="" alt="Image Preview"  style="block-size: 15cm;">
+
+        </div>
+        <button id="classifybutton"> Classify Image</button>
+
+        <div id = "loader"> 
+            CLassifying , please wait...
+        </div>
+        <div id ="errormsg"></div>
+
+        <!-- Result Section -->
+
+        <div id ="result">
+            <h3>Predictions</h3>
+            <div id = "predictionlist"></div>    
+        </div>
+    </div>
+       
+
+
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const fileinput = document.getElementById('fileinput');
+        const previewwrapper = document.getElementById('previewwrapper');
+        const previewimage = document.getElementById('previewimage');
+        const classifybutton = document.getElementById('classifybutton');
+        const loader = document.getElementById('loader');
+        const result = document.getElementById('result');
+        const predictionlist = document.getElementById('predictionlist');
+        const errormsg = document.getElementById('errormsg');
+
+        let selectedfile = null;
+
+        const apiurl ="http://127.0.0.1:5000/predict";
+
+        dropzone.addEventListener('click',() => fileinput.click());
+        dropzone.addEventListener('dragover', (e) =>{
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', ()=>{
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) =>{
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            
+            if(e.dataTransfer.files.length){
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+        
+        fileinput.addEventListener('change',(e)=>{
+            if(e.target.files.length){
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // Processsing the file
+        
+        function handleFile(file){
+            if(!file.type.startsWith('image/')){
+                alert('Please upload a valid image file.');
+                return ;
+            }
+            selectedfile= file;
+            const reader = new FileReader();
+            reader.onload = (e) =>{
+                previewimage.src = e.target.result;
+                previewwrapper.style.display = 'block';
+                classifybutton.style.display = 'inline-block';
+                result.style.display = 'none';
+                errormsg.style.display='none';
+
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Sending the image to the backend for classification
+
+        classifybutton.addEventListener('click', async()=>{
+
+
+            if (!selectedfile) return ;
+
+            loader.style.display = 'block';
+            result.style.display = ' none';
+            errormsg.style.display = 'none';
+            classifybutton.disabled = true;
+
+
+            const formData = new FormData();
+            formData.append('image', selectedfile);
+
+            try{
+                const response = await fetch(apiurl, {
+                    method : 'POST',
+                    body : formData
+                });
+
+                if(!response.ok){
+                    throw new Error(`Network response : ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                displayResults(data.predictions);
+                
+            } catch (error){
+                showError("Failed to classify image . Please try again .");
+            }finally {
+                loader.style.display = 'none';
+                classifybutton.disabled = false;
+            }
+            
+        });
+
+        // Displaying the results 
+        function displayResults(predictions){
+            predictionlist.innerHTML = '';
+
+            predictions.forEach(pred => {
+                const percent = (pred.confidence *100).toFixed(2);
+                const row = document.createElement('div');
+                row.className = 'pred-row';
+                row.innerHTML = `
+                    <div style = "width : 100%">
+                        <div style ="display : flex ; justify-content : space-between ;">
+                            <span> ${pred.label}</span>
+                            <span>${percent}% </span>
+                        </div>
+                        <div class ="confidence-bar">
+                            <div class ="confidence-fill" style ="width:${percent}%"></div>
+                        </div>
+                    </div>
+
+                `;
+                predictionlist.appendChild(row);
+            });
+            result.style.display = 'block';
+        }
+        function showError (msg){
+            errormsg.textContent = msg;
+            errormsg.style.display = 'block';
+        }
+
+
+
+        </script>
+        </body>
+        </html>
