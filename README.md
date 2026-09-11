@@ -4,9 +4,6 @@ An image classification system using Convolutional Neural Networks (TensorFlow) 
 
 # Image Classification System
 
-## Overview
-A brief 2-3 sentence summary: what problem this solves, what it classifies, 
-and the approach (e.g., CNN trained on [dataset name]).
 
 ## Features
 - Image upload and real-time classification
