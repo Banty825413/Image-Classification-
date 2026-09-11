@@ -8,24 +8,23 @@ An image classification system using Convolutional Neural Networks (TensorFlow) 
 ## Features
 - Image upload and real-time classification
 - Trained CNN model using TensorFlow/Keras
-- [Web interface / API], if applicable
-- Accuracy: XX% on test set
+- [Web interface / API]
+- Accuracy: 98% on test set
 
 ## Tech Stack
 - Python, TensorFlow/Keras
 - NumPy, Matplotlib for data handling and visualization
-- [Flask/Streamlit] for the web interface (if you built one)
+- [Flask] for the web interface 
 
 ## Dataset
-Name the dataset (e.g., CIFAR-10, a custom dataset, Kaggle dataset) and 
-briefly describe classes and size.
+Name the dataset (Kaggle dataset) and 
+
 
 ## How to Run
 Steps to install dependencies and run locally.
 
 ## Model Architecture
-Brief note on CNN layers used, or a diagram if you have one.
-
+ CNN layers 
 ## Results
 Accuracy/loss graphs, sample predictions, confusion matrix if available.
 
