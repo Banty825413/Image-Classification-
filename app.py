@@ -64,9 +64,13 @@ def predict():
 
     return jsonify({"predictions": results})
 
-@app.route("/",methods= ["GET"])
+@app.route("/health",methods= ["GET"])
 def health_check():
     return jsonify({"status": "Backend is running "})
+
+@app.route("/",methods= ["GET"])
+def home():
+    return send_file("index.html")
 
 if __name__ =="__main__":
     app.run(debug=True , host="127.0.0.1", port= 5000)
