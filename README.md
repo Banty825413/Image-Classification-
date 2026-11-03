@@ -25,7 +25,7 @@ Steps to install dependencies and run locally.
 
 ## Model Architecture
  CNN layers 
-## Results
-Accuracy/loss graphs, sample predictions, confusion matrix if available.
 
-## Future Improvements
+
+
+
